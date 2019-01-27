@@ -818,4 +818,12 @@ int num0[18][10] = {
   {1,1,1,1,1,1,1,1,1,1}, //row 18
   };
 
+int charArray[36][18][10] = {
+  letterA, letterB, letterC, letterD, letterE, letterF, letterG,
+  letterH, letterI, letterJ, letterK, letterL, letterM, letterN,
+  letterO, letterP, letterQ, letterR, letterS, letterT, letterU,
+  letterV, letterW, letterX, letterY, letterZ, num0, num1, num2,
+  num3, num4, num5, num6, num7, num8, num9
+};
+
 #endif
