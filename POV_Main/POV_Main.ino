@@ -6,7 +6,6 @@
  */
 
  #include <Adafruit_DotStar.h>
- #include <Wire.h>
  #include <SPI.h>
  #include <Adafruit_LIS3DH.h>
  #include <Adafruit_Sensor.h>
@@ -18,13 +17,6 @@
  #define DATAPIN 11
  #define CLOCKPIN 14
 
- /*// Used for software SPI
- #define LIS3DH_CLK 13
- #define LIS3DH_MISO 12
- #define LIS3DH_MOSI 11
- // Used for hardware & software SPI
- #define LIS3DH_CS 10*/
-
  void printWord(String myWord, int delayTime, int delaySpace, int direction);
  void printCharacter(int character[][10], int delayTime, int red, int green, int blue, int charDirection);
 
@@ -34,87 +26,42 @@
  int delayTime = 1;
  int delaySpace = 5;
  int direction = 0;
- //int count = 0;
 
- String myWord = "FUCK"; //must be in all caps
+ String myWord = "HEY"; //must be in all caps
 
  void setup() {
    //configure LED strip
    strip.begin(); // Initialize pins for output
    strip.show();  // Initialize LEDs to off
-   strip.setBrightness(64);
+   strip.setBrightness(64); //value from 0 to 255
 
-   Serial.begin(9600);
    //initialize accelerometer
    lis.begin(0x18);
 
    //configure accelerometer
    lis.setRange(LIS3DH_RANGE_4_G);   // 2, 4, 8 or 16 G
 
-   /*Serial.print("Range = ");
-   Serial.print(2 << lis.getRange() ); // 2<< bitshift to make correct value display
-   Serial.println("G");*/
-
    randomSeed(analogRead(0)); //initialize random seed using value from pin 0
  }
 
  void loop() {
-   int startCounter = 0;
-
    lis.read();
-   
-   if (lis.y <= -8191 && direction == 0) { //look for -2G movement
+   if (lis.y <= -8191 && direction == 0) { //-2G right acceleration
      //start
      delay(delaySpace);
      printWord(myWord, delayTime, delaySpace, direction);
-     startCounter = 1;
    }
-   else if (lis.y >= 8191 && direction == 0) {
+   else if (lis.y >= 8191 && direction == 0) { //+2G left decceleration
      direction = 1;
    }
-   else if (lis.y >= 8191 && direction == 1) {
+   else if (lis.y >= 8191 && direction == 1) { //+2G left acceleration
      //start reverse
      delay(delaySpace);
      printWord(myWord, delayTime, delaySpace, direction);
    }
-   else if (lis.y <= -8191 && direction == 1) {
+   else if (lis.y <= -8191 && direction == 1) { //-2G right decceleration
      direction = 0;
    }
-   /*delay(50);
-   printWord(myWord, delayTime, delaySpace, 0);
-   delay(50);
-   printWord(myWord, delayTime, delaySpace, 1);*/
-
-   /*
-   if( (lis.x >= -8191) && (lis.x <= 8191) ) { //potentially use (abs(lis.x) <= 8191)
-     delayTime = 2; //to be changed}
-   }*/
- /*
-   else if( abs(lis.x) > 8191 && abs(lis.x) <= 16382 ) {
-     ledSpeed = 1000;
-   }
-
-   else if( abs(lis.x) > 16382 && abs(lis.x) <= 24573 ){
-       ledSpeed = 1500;
-     }
-
-   else if ( abs(lis.x) > 24573 && abs(lis.x) <= 32767 ){
-       ledSpeed = 2000;
-     }*/
-
-   /*delay(10);
-   printCharacter(letterH, delayTime, green, red, blue, 0);
-   delay(10);
-   printCharacter(letterE, delayTime, green, red, blue, 0);
-   delay(10);
-   printCharacter(letterY, delayTime, green, red, blue, 0);
-
-   delay(10);
-   printCharacter(letterH, delayTime, green, red, blue, 1);
-   delay(10);
-   printCharacter(letterE, delayTime, green, red, blue, 1);
-   delay(10);
-   printCharacter(letterY, delayTime, green, red, blue, 1);*/
  }
 
  void printWord(String myWord, int delayTime, int delaySpace, int direction) {
