@@ -21,6 +21,7 @@
  void printCharacter(int character[][10], int delayTime, int red, int green, int blue, int charDirection);
 
  Adafruit_DotStar strip = Adafruit_DotStar(NUMPIXELS, DATAPIN, CLOCKPIN, DOTSTAR_BRG);
+
  Adafruit_LIS3DH lis = Adafruit_LIS3DH();
 
  int delayTime = 1;
@@ -40,6 +41,7 @@
 
    //configure accelerometer
    lis.setRange(LIS3DH_RANGE_4_G);   // 2, 4, 8 or 16 G
+
 
    randomSeed(analogRead(0)); //initialize random seed using value from pin 0
  }
