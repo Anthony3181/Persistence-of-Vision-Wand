@@ -5,18 +5,34 @@
  * Description:
  */
 
+ /**********************
+  * Include Files
+  * ********************/
  #include <Adafruit_DotStar.h>
  #include <SPI.h>
  #include <Adafruit_LIS3DH.h>
  #include <Adafruit_Sensor.h>
 
 
- //#include <string.h>
  #include "letters.h"
 
  /**********************
   * Variable Definitions and Object Instantiations
   * ********************/
+
+ typedef enum
+ {
+   NO_SWING,
+   SPEED_1,
+   SPEED_2,
+   SPEED_3
+ } swing_speed_t;
+
+ typedef enum
+ {
+   LEFT,
+   RIGHT
+ } direction_t;
 
  #define NUMPIXELS 18 //Number of LEDs in strip
  #define DATAPIN 11
@@ -25,9 +41,11 @@
  int delayTime = 1;
  int delaySpace = 5;
  int hLocation = 0; //Initializes horizontal location marker.
- float speed = 0; //Initializes speed variable
- bool displayEn = 0;
- unsigned long waveStartTime;
+ float yVelocity = 0; //Initializes Y velocity variable
+ swing_speed_t speed = NO_SWING;
+ direction_t direction = LEFT;
+ unsigned long lastUpdate = 0; //Initializes the variable that will track when the timer was last updated.
+ int dT = 7; //Initializes the dT (delta T) variable. Unit is milliseconds
  int16_t last100[100];
 
  String myWord = "HEY"; //must be in all caps
@@ -146,12 +164,12 @@ void updatelast100(int16_t last100[100], int16_t aValue){
     }
     last100[0] = aValue;
     //Uncomment this section to test funcitonality.
-    Serial.print('[');
-    for(int i = 0; i < 99; ++i){
-      Serial.print(last100[i] / 100);
-      Serial.print(',');
-    }
-    Serial.println(']');
+    // Serial.print('[');
+    // for(int i = 0; i < 99; ++i){
+    //   Serial.print(last100[i] / 100);
+    //   Serial.print(',');
+    // }
+    // Serial.println(']');
     
 }
 
@@ -162,7 +180,7 @@ void updatelast100(int16_t last100[100], int16_t aValue){
  *    checkWaveStart
  * 
  * Parameters:
- *    int16_t array, bool* , unsigned long*
+ *    int16_t array, bool*
  * 
  * Returns:
  *    Nothing
@@ -173,117 +191,82 @@ void updatelast100(int16_t last100[100], int16_t aValue){
  * 
  * ******************/
 
-void checkWaveStart(int16_t last100[100], bool* displayEn, unsigned long* waveStartTimep){
+void checkWaveStart(int16_t last100[100], swing_speed_t* speed, direction_t* direction){
   float first = last100[0] / 100;
   float middle = last100[50] / 100;
   float last = last100[99] / 100;
-  //Serial.print(first);
-  //Serial.print(' ');
-  //Serial.print(middle);
-  //Serial.print(' ');  
-  //Serial.println(last); 
   if(middle < first && middle < last){
-    *waveStartTimep = millis();
-    *displayEn = 1;
-    Serial.println("Wave Start Triggered");
-    Serial.println(*waveStartTimep);
-    Serial.println(*displayEn);
+    *direction = RIGHT;
+    *speed = SPEED_1;
+    Serial.println("Wand has started waving.");
+    Serial.println("Wand is moving right.");
+  }
+}
+
+/******************
+ * Function Name:
+ * 
+ *    checkWaveStop
+ * 
+ * Parameters:
+ *    int16_t array, bool*, float*
+ * 
+ * Returns:
+ *    Nothing
+ * 
+ * Function Description:
+ *    Checks to see if the wand has stopped waving. If this condition is met
+ *    it sets the speed to NO_SWING.
+ * 
+ * ******************/
+
+
+/******************
+ * Function Name:
+ * 
+ *    updateTiming
+ * 
+ * Parameters:
+ *    int16_t, swing_speed_t*, direction_t*
+ * 
+ * Returns:
+ *    Nothing
+ * 
+ * Function Description:
+ *    Updates direction and swing speed threshold.
+ * 
+ * ******************/
+
+void updateTiming(int16_t last100[100], swing_speed_t* speed, direction_t* direction){
+  float first = last100[0] / 100;
+  float middle = last100[50] / 100;
+  float last = last100[99] / 100;
+  if(middle < first && middle < last){
+    *direction = RIGHT;
+    Serial.println("Wand is moving right.");
+  } else if (middle > first && middle > last){
+    *direction = LEFT;
+    Serial.println("Wand is moving left.");
+  }
+  if(abs(first) > 5000 && abs(first) < 10000){
+    *speed = SPEED_1;
+    Serial.println("Wand is at speed threshold 1.");
+  } else if(abs(first) > 10000 && abs(first) < 20000){
+    *speed = SPEED_2;
+    Serial.println("Wand is at speed threshold 2.");
+  } else if (abs(first) > 20000){
+    *speed = SPEED_3;
+    Serial.println("Wand is at speed threshold 3.");
+  } else {
+    *speed = NO_SWING;
+    Serial.println("Wand is not waving fast enough.");
   }
 }
 
 
 
-/*********************
- * Funciton Name: 
- * 
- *    printWord
- * 
- * Parameters:
- * 
- *    string myWord, int delayTime, it delaySpace, int direction
- * 
- * Returns: 
- * 
- *    Nothing
- * 
- * Function Description: 
- * 
- * Takes in the word and delay time delay space and direction formats the word into an array the LED strip can display.
- * 
- * ********************/
 
-
-/*
-void printWord(String myWord, int delayTime, int delaySpace, int direction) {
-   int red = 255;
-   int green = 0;
-   int blue = 255;
-
-   for (unsigned int i = 0; i < myWord.length(); i++) {
-     if (myWord[i] >= 65 && myWord[i] <= 90) { //check if letter
-       delay(delaySpace);
-       printCharacter(charArray[myWord[i] - 65], delayTime, green, red, blue, direction);
-     }
-     else if (myWord[i] >= 48 && myWord[i] <= 57) { //check if num
-       delay(delaySpace);
-       printCharacter(charArray[myWord[i] - 48], delayTime, green, red, blue, direction);
-     }
-     else if(myWord[i] == 32){ //check if space
-
-     }
-   }
- }
-
-
-void printCharacter(int character[][12], int delayTime, int red, int green, int blue, int charDirection) {
-   if (!charDirection) {
-     for (int i = 0; i < 10; i++) {
-       for (int j = 17; j >= 0; j--) {
-         if (character[j][i] == 1) {
-           strip.setPixelColor(abs(j-17), red, green, blue);
-         }
-         else {
-           strip.setPixelColor(abs(j-17), 0);
-         }
-       }
-       strip.show();
-       delay(delayTime);
-     }
-
-     //reset to 0
-     for(int i = 0; i < 18; i++) {
-       strip.setPixelColor(i, 0);
-     }
-     strip.show();
-     delay(delayTime);
-   }
-   else {
-     for (int i = 9; i >= 0; i--) {
-       for (int j = 17; j >= 0; j--) {
-         if (character[j][i] == 1) {
-           strip.setPixelColor(abs(j-17), red, green, blue);
-         }
-         else {
-           strip.setPixelColor(abs(j-17), 0);
-         }
-       }
-       strip.show();
-       delay(delayTime);
-     }
-     //reset to 0
-     for(int i = 0; i < 18; i++) {
-       strip.setPixelColor(i, 0);
-     }
-     strip.show();
-     delay(delayTime);
-   }
- }*/
-
-
-
-
-
- void setup() {
+void setup() {
 
    Serial.begin(9600);
    //configure LED strip
@@ -302,17 +285,24 @@ void printCharacter(int character[][12], int delayTime, int red, int green, int 
 
 
    randomSeed(analogRead(0)); //initialize random seed using value from pin 0
- }
+}
 
- void loop() {
+void loop() {
     lis.read();
-    if(!displayEn){
-      updatelast100(last100, lis.y);
-      checkWaveStart(last100, &displayEn, &waveStartTime);
-      delay(20);
+    Serial.print(lis.x);
+    Serial.print(lis.y);
+    Serial.println(lis.z);
+    if(millis() - lastUpdate >= dT){    //This creates a non-blocking framrate timer. The dT limits the framrate to 1000/dT FPS
+      lastUpdate = millis();
+      //updatelast100(last100, lis.y);
+      if(!speed && lis.y < -4000){
+        //checkWaveStart(last100, &speed, &direction);
+      }
+      if(speed){
+        //updateTiming(last100, &speed, &direction);
+      }
     }
-    
- }
+}
 
  
 
