@@ -237,29 +237,39 @@ void checkWaveStart(int16_t last100[100], swing_speed_t* speed, direction_t* dir
  * 
  * ******************/
 
+//TODO: Create boolean value to allow the inturupt to only happen once per peak.
+
 void updateTiming(int16_t last100[100], swing_speed_t* speed, direction_t* direction){
-  float first = last100[0] / 100;
-  float middle = last100[50] / 100;
-  float last = last100[99] / 100;
+  int16_t first = last100[0];
+  int16_t middle = last100[25];
+  int16_t last = last100[50];
+  //Serial.println(first);
   if(middle < first && middle < last){
     *direction = RIGHT;
-    Serial.println("Wand is moving right.");
+    //Serial.println("Wand is moving right.");
+    if(abs(first) > 10000 && abs(first) < 15000){
+      *speed = SPEED_1;
+     // Serial.println("Wand is at speed threshold 1.");
+    } else if (abs(first) > 15000){
+     *speed = SPEED_2;
+      //Serial.println("Wand is at speed threshold 2.");
+    } else {
+      *speed = NO_SWING;
+     //Serial.println("Wand is not waving fast enough.");
+    }
   } else if (middle > first && middle > last){
     *direction = LEFT;
-    Serial.println("Wand is moving left.");
-  }
-  if(abs(first) > 5000 && abs(first) < 10000){
-    *speed = SPEED_1;
-    Serial.println("Wand is at speed threshold 1.");
-  } else if(abs(first) > 10000 && abs(first) < 20000){
-    *speed = SPEED_2;
-    Serial.println("Wand is at speed threshold 2.");
-  } else if (abs(first) > 20000){
-    *speed = SPEED_3;
-    Serial.println("Wand is at speed threshold 3.");
-  } else {
-    *speed = NO_SWING;
-    Serial.println("Wand is not waving fast enough.");
+    //Serial.println("Wand is moving left.");
+    if(abs(first) > 10000 && abs(first) < 15000){
+     *speed = SPEED_1;
+     //Serial.println("Wand is at speed threshold 1.");
+    } else if (abs(first) > 15000){
+      *speed = SPEED_2;
+      //Serial.println("Wand is at speed threshold 2.");
+    } else {
+      *speed = NO_SWING;
+     //Serial.println("Wand is not waving fast enough.");
+    }
   }
 }
 
@@ -289,17 +299,19 @@ void setup() {
 
 void loop() {
     lis.read();
-    Serial.print(lis.x);
-    Serial.print(lis.y);
-    Serial.println(lis.z);
     if(millis() - lastUpdate >= dT){    //This creates a non-blocking framrate timer. The dT limits the framrate to 1000/dT FPS
       lastUpdate = millis();
-      //updatelast100(last100, lis.y);
-      if(!speed && lis.y < -4000){
-        //checkWaveStart(last100, &speed, &direction);
+      updatelast100(last100, lis.y);
+      //Serial.println(lis.y);
+      if(!speed && abs(lis.y) > 10000){
+        checkWaveStart(last100, &speed, &direction);
       }
       if(speed){
-        //updateTiming(last100, &speed, &direction);
+        updateTiming(last100, &speed, &direction);
+        Serial.print(speed);
+        Serial.print(' ');
+        Serial.println(direction);
+
       }
     }
 }
