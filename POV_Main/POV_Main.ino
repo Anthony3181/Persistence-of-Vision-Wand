@@ -244,26 +244,26 @@ void updateTiming(int16_t last100[100], swing_speed_t* speed, direction_t* direc
   int16_t middle = last100[25];
   int16_t last = last100[50];
   //Serial.println(first);
-  if(middle < first && middle < last){
+  if(middle < first && middle < last && *direction == LEFT){
     *direction = RIGHT;
     //Serial.println("Wand is moving right.");
-    if(abs(first) > 10000 && abs(first) < 15000){
+    if(abs(first) > 8000 && abs(first) < 12000){
       *speed = SPEED_1;
      // Serial.println("Wand is at speed threshold 1.");
-    } else if (abs(first) > 15000){
+    } else if (abs(first) > 12000){
      *speed = SPEED_2;
       //Serial.println("Wand is at speed threshold 2.");
     } else {
       *speed = NO_SWING;
      //Serial.println("Wand is not waving fast enough.");
     }
-  } else if (middle > first && middle > last){
+  } else if (middle > first && middle > last && *direction == RIGHT){
     *direction = LEFT;
     //Serial.println("Wand is moving left.");
-    if(abs(first) > 10000 && abs(first) < 15000){
+    if(abs(first) > 8000 && abs(first) < 12000){
      *speed = SPEED_1;
      //Serial.println("Wand is at speed threshold 1.");
-    } else if (abs(first) > 15000){
+    } else if (abs(first) > 12000){
       *speed = SPEED_2;
       //Serial.println("Wand is at speed threshold 2.");
     } else {
@@ -298,21 +298,21 @@ void setup() {
 }
 
 void loop() {
-    lis.read();
     if(millis() - lastUpdate >= dT){    //This creates a non-blocking framrate timer. The dT limits the framrate to 1000/dT FPS
+      lis.read();
       lastUpdate = millis();
       updatelast100(last100, lis.y);
       //Serial.println(lis.y);
-      if(!speed && abs(lis.y) > 10000){
-        checkWaveStart(last100, &speed, &direction);
-      }
-      if(speed){
+       if(abs(lis.y) > 8000){
         updateTiming(last100, &speed, &direction);
         Serial.print(speed);
         Serial.print(' ');
-        Serial.println(direction);
-
-      }
+        Serial.print(direction);
+        Serial.print(' ');
+        float lisData = lis.y / 10000;
+        Serial.println(lisData);
+       }
+      
     }
 }
 
