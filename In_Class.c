@@ -3,7 +3,7 @@
 
 
 void setup(void){
-
+  Serial.begin(9600);
 
 }
 
@@ -17,7 +17,7 @@ float value_out = 0; //value to be passed to display
 
 void loop(){
 
-
-
+  pot_pin = analogRead(/*pin number */);
+  display_pin = analogWrite(
 
 }
