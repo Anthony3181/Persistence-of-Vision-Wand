@@ -1,7 +1,6 @@
 /* File Name: POV_Main.ino
- * Author: Suyang Liu
- * Date: 1/24/2019
- * Revision: 0
+ * Author: Suyang Liu, Jordan Baxter, Anthony Bishop
+ * Date: 1/1/2019
  * Description:
  */
 
@@ -46,8 +45,8 @@
  unsigned int dT = 7; //Initializes the dT (delta T) variable. Unit is milliseconds
  int16_t last100[100];
 
- String myWord = "FUCK"; //must be in all caps
- const int wordLength = 4;
+ String myWord = "HIRE ME"; //must be in all caps
+ const int wordLength = 7;
 
  const int wordArrayLength = wordLength*12;
 
@@ -251,16 +250,16 @@ void checkWaveStart(int16_t last100[100], swing_speed_t* speed, direction_t* dir
 //TODO: Create boolean value to allow the inturupt to only happen once per peak.
 
 void updateTiming(int16_t last100[100], swing_speed_t* speed, direction_t* direction){
-  int noiseFilter = 400;
+  int noiseFilter = 50;
   int16_t first = last100[0];
-  int16_t middle = last100[25];
-  int16_t last = last100[50];
+  int16_t middle = last100[10];
+  int16_t last = last100[20];
   //Serial.println(first);
-  if(middle < first && middle < last - noiseFilter && *direction == LEFT && millis() - lastDirectionChange > 100){
+  if(middle < first - noiseFilter/3 && middle < last - noiseFilter && *direction == LEFT && millis() - lastDirectionChange > 200){
     *direction = RIGHT;
     lastDirectionChange = millis(); //remove maybe?
     //Serial.println("Wand is moving right.");
-    if(abs(first) > 10000 && abs(first) < 26000){
+    if(abs(first) > 8000 && abs(first) < 26000){
       *speed = SPEED_1;
      // Serial.println("Wand is at speed threshold 1.");
    } else if (abs(first) > 26000){
@@ -270,11 +269,11 @@ void updateTiming(int16_t last100[100], swing_speed_t* speed, direction_t* direc
       *speed = NO_SWING;
      //Serial.println("Wand is not waving fast enough.");
     }
-  } else if (middle > first && middle > last + noiseFilter && *direction == RIGHT && millis() - lastDirectionChange > 100){
+  } else if (middle > first + noiseFilter/3 && middle > last + noiseFilter && *direction == RIGHT && millis() - lastDirectionChange > 200){
     *direction = LEFT;
     lastDirectionChange = millis();
     //Serial.println("Wand is moving left.");
-    if(abs(first) > 10000 && abs(first) < 26000){
+    if(abs(first) > 8000 && abs(first) < 26000){
      *speed = SPEED_1;
      //Serial.println("Wand is at speed threshold 1.");
    } else if (abs(first) > 26000){
@@ -301,7 +300,8 @@ void printWord(short myWordArray[][18]/*, swing_speed_t* speed, direction_t* dir
     delayTime = 1;
   }
 
-  if (direction == LEFT) {
+  delay(delayTime);
+  if (direction == RIGHT) {
     for (int i = 0; i < wordArrayLength; i++) {
       for (int j = 17; j >= 0; j--) {
         if (myWordArray[i][j] == 1) {
@@ -365,14 +365,14 @@ void loop() {
       lastUpdate = millis();
       updatelast100(last100, accel.y);
       //Serial.println(accel.y);
-       if(abs(accel.y) > 10000){
+       if(abs(accel.y) > 8000){
         updateTiming(last100, &speed, &direction);
-        /*Serial.print(speed);
+        Serial.print(speed);
         Serial.print(' ');
         Serial.print(direction);
         Serial.print(' ');
-        float accelData = accel.y / 10000;
-        Serial.println(accelData);*/
+        float accelData = accel.y;
+        Serial.println(accelData);
 
 
         //PRINT
