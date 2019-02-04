@@ -15,6 +15,14 @@
 
  #include "letters.h"
 
+  /**********************
+  * User Config
+  * ********************/
+
+ String myWord = "HIRE US"; //must be in all caps
+ const int wordLength = 7;
+
+
  /**********************
   * Variable Definitions and Object Instantiations
   * ********************/
@@ -36,8 +44,6 @@
 
  //int delayTime = 1;
  //int delaySpace = 5;
- int hLocation = 0; //Initializes horizontal location marker.
- float yVelocity = 0; //Initializes Y velocity variable
  swing_speed_t speed = NO_SWING;
  direction_t direction = LEFT;
  unsigned long lastUpdate = 0; //Initializes the variable that will track when the timer was last updated.
@@ -45,8 +51,6 @@
  unsigned int dT = 7; //Initializes the dT (delta T) variable. Unit is milliseconds
  int16_t last100[100];
 
- String myWord = "HIRE US"; //must be in all caps
- const int wordLength = 7;
 
  const int wordArrayLength = wordLength*12;
 
@@ -74,7 +78,7 @@
  *    Nothing
  *
  * Description:
- *    Takes the populates an array of booleans base off the value of a given string.
+ *    Takes the populates a 2D array of booleans based off the values of a given string. All Commented sections are test functions.
  * ********************/
 
 void writeWordArray(short (*wordArray)[wordArrayLength][18], String myWord){
@@ -123,13 +127,13 @@ void writeWordArray(short (*wordArray)[wordArrayLength][18], String myWord){
  *    serialPrintWordArray
  *
  * Parameters:
- *    3D Short array
+ *    2D Short Integer array
  *
  * Returns:
  *    Nothing
  *
  * Function Description:
- *    Prints the word array in the serial monitor, written to test the writeWordArray function.
+ *    Prints the word array in the serial monitor, written to test the writeWordArray function. All Commented sections are test functions.
  *
  * ******************/
 void serialPrintWordArray(short myWordArray[][18]){
@@ -164,7 +168,7 @@ void serialPrintWordArray(short myWordArray[][18]){
  *
  * Function Description:
  *    Update the array of the last 20 acceleration values by shifting the entire array by one and adding the new
- *    value to the 0th index.
+ *    value to the 0th index. All Commented sections are test functions.
  *
  * ******************/
 
@@ -183,54 +187,6 @@ void updatelast100(int16_t last100[100], int16_t aValue){
 
 }
 
-
-/******************
- * Function Name:
- *
- *    checkWaveStart
- *
- * Parameters:
- *    int16_t array, bool*
- *
- * Returns:
- *    Nothing
- *
- * Function Description:
- *    Checks to see if the wand is being waved and that it is at a local minimum value. If these conditions are met
- *    the function will record the time of start and enable the display.
- *
- * ******************/
-/*
-void checkWaveStart(int16_t last100[100], swing_speed_t* speed, direction_t* direction){
-  float first = last100[0] / 100;
-  float middle = last100[50] / 100;
-  float last = last100[99] / 100;
-  if(middle < first && middle < last){
-    *direction = RIGHT;
-    *speed = SPEED_1;
-    Serial.println("Wand has started waving.");
-    Serial.println("Wand is moving right.");
-  }
-}*/
-
-/******************
- * Function Name:
- *
- *    checkWaveStop
- *
- * Parameters:
- *    int16_t array, bool*, float*
- *
- * Returns:
- *    Nothing
- *
- * Function Description:
- *    Checks to see if the wand has stopped waving. If this condition is met
- *    it sets the speed to NO_SWING.
- *
- * ******************/
-
-
 /******************
  * Function Name:
  *
@@ -247,7 +203,6 @@ void checkWaveStart(int16_t last100[100], swing_speed_t* speed, direction_t* dir
  *
  * ******************/
 
-//TODO: Create boolean value to allow the inturupt to only happen once per peak.
 
 void updateTiming(int16_t last100[100], swing_speed_t* speed, direction_t* direction){
   int noiseFilter = 50;
@@ -286,10 +241,10 @@ void updateTiming(int16_t last100[100], swing_speed_t* speed, direction_t* direc
   }
 }
 
-void printWord(short myWordArray[][18]/*, swing_speed_t* speed, direction_t* direction*/) {
-  int red = 17/*random(255)*/;
-  int green = 79/*random(255)*/;
-  int blue = 150/*random(255)*/;
+void printWord(short myWordArray[][18]) {
+  int red = 17;
+  int green = 79;
+  int blue = 150;
 
   int delayTime = 0;
 
@@ -330,7 +285,7 @@ void printWord(short myWordArray[][18]/*, swing_speed_t* speed, direction_t* dir
     }
   }
 
-  //reset
+  //This sections ensures all of the LED's are turned off when the word finishes printing.
   for (int i = 0; i < 18; i++) {
     strip.setPixelColor(i, 0, 0, 0);
   }
@@ -360,7 +315,7 @@ void setup() {
 }
 
 void loop() {
-    if(millis() - lastUpdate >= dT){    //This creates a non-blocking framrate timer. The dT limits the framrate to 1000/dT FPS
+    if(millis() - lastUpdate >= dT){    //This creates a non-blocking sampling and framrate timer. The dT limits the rate to dT/1000 Hz (~140Hz for dT = 7)
       accel.read();
       lastUpdate = millis();
       updatelast100(last100, accel.y);
@@ -377,7 +332,7 @@ void loop() {
 
         //PRINT
         if (speed != NO_SWING) {
-          printWord(myWordArray/*, &speed, &direction*/);
+          printWord(myWordArray);
           speed = NO_SWING;
         }
        }
