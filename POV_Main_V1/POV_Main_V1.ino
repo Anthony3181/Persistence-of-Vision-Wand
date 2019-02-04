@@ -45,7 +45,7 @@
  unsigned int dT = 7; //Initializes the dT (delta T) variable. Unit is milliseconds
  int16_t last100[100];
 
- String myWord = "HIRE ME"; //must be in all caps
+ String myWord = "HIRE US"; //must be in all caps
  const int wordLength = 7;
 
  const int wordArrayLength = wordLength*12;
@@ -255,28 +255,28 @@ void updateTiming(int16_t last100[100], swing_speed_t* speed, direction_t* direc
   int16_t middle = last100[10];
   int16_t last = last100[20];
   //Serial.println(first);
-  if(middle < first - noiseFilter/3 && middle < last - noiseFilter && *direction == LEFT && millis() - lastDirectionChange > 200){
+  if(middle < first - noiseFilter/3 && middle < last - noiseFilter && *direction == LEFT && millis() - lastDirectionChange > 100){
     *direction = RIGHT;
     lastDirectionChange = millis(); //remove maybe?
     //Serial.println("Wand is moving right.");
-    if(abs(first) > 8000 && abs(first) < 26000){
+    if(abs(first) > 8000 && abs(first) < 19000){
       *speed = SPEED_1;
      // Serial.println("Wand is at speed threshold 1.");
-   } else if (abs(first) > 26000){
+   } else if (abs(first) > 19000){
      *speed = SPEED_2;
       //Serial.println("Wand is at speed threshold 2.");
     } else {
       *speed = NO_SWING;
      //Serial.println("Wand is not waving fast enough.");
     }
-  } else if (middle > first + noiseFilter/3 && middle > last + noiseFilter && *direction == RIGHT && millis() - lastDirectionChange > 200){
+  } else if (middle > first + noiseFilter/3 && middle > last + noiseFilter && *direction == RIGHT && millis() - lastDirectionChange > 100){
     *direction = LEFT;
     lastDirectionChange = millis();
     //Serial.println("Wand is moving left.");
-    if(abs(first) > 8000 && abs(first) < 26000){
+    if(abs(first) > 8000 && abs(first) < 19000){
      *speed = SPEED_1;
      //Serial.println("Wand is at speed threshold 1.");
-   } else if (abs(first) > 26000){
+   } else if (abs(first) > 19000){
       *speed = SPEED_2;
       //Serial.println("Wand is at speed threshold 2.");
     } else {
@@ -297,7 +297,7 @@ void printWord(short myWordArray[][18]/*, swing_speed_t* speed, direction_t* dir
     delayTime = 2;
   }
   else {
-    delayTime = 1;
+    delayTime = 0.5;
   }
 
   delay(delayTime);
@@ -369,10 +369,10 @@ void loop() {
         updateTiming(last100, &speed, &direction);
         Serial.print(speed);
         Serial.print(' ');
-        Serial.print(direction);
-        Serial.print(' ');
+        Serial.println(direction);
+        /*Serial.print(' ');
         float accelData = accel.y;
-        Serial.println(accelData);
+        Serial.println(accelData);*/
 
 
         //PRINT
